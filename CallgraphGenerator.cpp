@@ -4,22 +4,32 @@
 
 #include "CallgraphGenerator.h"
 
-CallgraphGenerator::CallgraphGenerator(Ref<BinaryView> data, Ref<Function> func) : m_data(data), m_baseFunction(func)
+CallgraphGenerator* CallgraphGenerator::GetInstance(Ref<BinaryView> view)
 {
+    if (!callGraphInstances.count(view)) {
+        callGraphInstances[view] = new CallgraphGenerator(view);
+    }
 
+    return callGraphInstances[view];
 }
 
-Ref<FlowGraph> CallgraphGenerator::GenerateCallgraphInDirection(bool up, bool down, bool full)
+CallgraphGenerator::CallgraphGenerator(Ref<BinaryView> data) : m_data(data)
 {
-    vector<CallGraphNode*> nodes;
-    Ref<FlowGraph> graph = new FlowGraph();
+    m_data->RegisterNotification(this);
+    RebuildCache();
+}
+
+void CallgraphGenerator::RebuildCache()
+{
+    m_nodes.clear();
+    m_nodeMap.clear();
 
     // Generate an initial set of nodes
     for (auto f : m_data->GetAnalysisFunctionList())
     {
         CallGraphNode *node = new CallGraphNode();
         node->func = f;
-        nodes.push_back(node);
+        m_nodes.push_back(node);
         m_nodeMap[f] = node;
     }
 
@@ -35,10 +45,51 @@ Ref<FlowGraph> CallgraphGenerator::GenerateCallgraphInDirection(bool up, bool do
         }
     }
 
+    m_cacheValid = true;
+}
 
-    auto baseNode = m_nodeMap[m_baseFunction];
+void CallgraphGenerator::OnAnalysisFunctionAdded(BinaryView*, Function*)
+{
+    m_cacheValid = false;
+}
+
+void CallgraphGenerator::OnAnalysisFunctionUpdated(BinaryView*, Function*)
+{
+    m_cacheValid = false;
+}
+
+void CallgraphGenerator::OnAnalysisFunctionRemoved(BinaryView*, Function*)
+{
+    m_cacheValid = false;
+}
+
+Ref<FlowGraph> CallgraphGenerator::GenerateCallgraphInDirection(Ref<Function> func, bool up, bool down, bool full)
+{
+    if (!m_cacheValid)
+        RebuildCache();
+
+    Ref<FlowGraph> graph = new FlowGraph();
+
+    auto baseNode = m_nodeMap[func];
+
+    if (!baseNode)
+        RebuildCache();
+    if (!baseNode)
+    {
+        LogAlert("A serious issue occurred with flowgraph generation");
+
+        auto node = new FlowGraphNode(graph);
+        DisassemblyTextLine line;
+        line.tokens.emplace_back(TextToken, "base node was null.");
+        DisassemblyTextLine line2;
+        line2.tokens.emplace_back(TextToken, "This shouldn't ever occur. Please file an issue");
+        node->SetLines({line, line2});
+        graph->AddNode(node);
+        return graph;
+    }
 
     vector<CallGraphNode*> validNodes;
+
     if (!full)
     {
         validNodes.push_back(baseNode);
@@ -102,16 +153,17 @@ Ref<FlowGraph> CallgraphGenerator::GenerateCallgraphInDirection(bool up, bool do
             validNodes.insert( validNodes.end(), upwardValidNodes.begin(), upwardValidNodes.end() );
         if (!downwardValidNodes.empty())
             validNodes.insert( validNodes.end(), downwardValidNodes.begin(), downwardValidNodes.end() );
-
-
     }
     else
     {
-        validNodes = nodes;
+        validNodes = m_nodes;
     }
 
     for (auto node : validNodes)
     {
+        // We need to always clear out and replace the FlowGraphNodes
+        // BN's FlowGraph parser segfaults if you have edges to nodes not in the graph
+        // and there is no way to clear out edges.
         node->node = new FlowGraphNode(graph);
         DisassemblyTextLine line;
         line.tokens.emplace_back(CodeSymbolToken, node->func->GetSymbol()->GetFullName(), node->func->GetStart());
@@ -120,7 +172,6 @@ Ref<FlowGraph> CallgraphGenerator::GenerateCallgraphInDirection(bool up, bool do
 
     for (auto node : validNodes)
     {
-
         for (auto edge : node->edges)
         {
             if (m_nodeMap[edge]->node && std::count(validNodes.begin(), validNodes.end(), m_nodeMap[edge]))

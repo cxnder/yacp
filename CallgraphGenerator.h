@@ -25,18 +25,32 @@ struct CallGraphNode
 };
 
 
-class CallgraphGenerator
+class CallgraphGenerator : public BinaryDataNotification
 {
+
     Ref<BinaryView> m_data;
-    Ref<Function> m_baseFunction;
+    Ref<Logger> m_logger;
 
     map<Ref<Function>, CallGraphNode*> m_nodeMap;
+    vector<CallGraphNode*> m_nodes;
+
+    bool m_cacheValid;
 
 public:
-    CallgraphGenerator(Ref<BinaryView> data, Ref<Function> func);
 
-    Ref<FlowGraph> GenerateCallgraphInDirection(bool up, bool down, bool full = false);
+    static CallgraphGenerator* GetInstance(Ref<BinaryView> view);
+
+    CallgraphGenerator(Ref<BinaryView> data);
+
+    void OnAnalysisFunctionAdded(BinaryView *view, Function *func) override;
+    void OnAnalysisFunctionUpdated(BinaryView *view, Function *func) override;
+    void OnAnalysisFunctionRemoved(BinaryView *view, Function *func) override;
+
+    void RebuildCache();
+
+    Ref<FlowGraph> GenerateCallgraphInDirection(Ref<Function> func, bool up, bool down, bool full = false);
 };
 
+static map<Ref<BinaryView>, CallgraphGenerator*> callGraphInstances;
 
 #endif //YACP_CALLGRAPHGENERATOR_H

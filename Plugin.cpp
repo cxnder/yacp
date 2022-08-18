@@ -11,27 +11,21 @@ using namespace BinaryNinja;
 
 void displayCallGraphUpward(BinaryView *view, Function *func)
 {
-    auto gen = new CallgraphGenerator(view, func);
-
-    auto graph = gen->GenerateCallgraphInDirection(true, false);
+    auto graph = CallgraphGenerator::GetInstance(view)->GenerateCallgraphInDirection(func, true, false);
 
     view->ShowGraphReport("Calls to " + func->GetSymbol()->GetFullName(), graph);
 }
 
 void displayCallGraphDownward(BinaryView *view, Function *func)
 {
-    auto gen = new CallgraphGenerator(view, func);
-
-    auto graph = gen->GenerateCallgraphInDirection(false, true);
+    auto graph = CallgraphGenerator::GetInstance(view)->GenerateCallgraphInDirection(func, false, true);
 
     view->ShowGraphReport("Calls from " + func->GetSymbol()->GetFullName(), graph);
 }
 
 void displayCallGraphBidirectional(BinaryView *view, Function *func)
 {
-    auto gen = new CallgraphGenerator(view, func);
-
-    auto graph = gen->GenerateCallgraphInDirection(true, true);
+    auto graph = CallgraphGenerator::GetInstance(view)->GenerateCallgraphInDirection(func, true, true);
 
     view->ShowGraphReport("Calls to and from " + func->GetSymbol()->GetFullName(), graph);
 }
@@ -39,19 +33,15 @@ void displayCallGraphBidirectional(BinaryView *view, Function *func)
 
 void displayCallGraphFromEntry(BinaryView *view)
 {
-    auto gen = new CallgraphGenerator(view, view->GetAnalysisEntryPoint());
+   auto graph = CallgraphGenerator::GetInstance(view)->GenerateCallgraphInDirection(view->GetAnalysisEntryPoint(), false, true);
 
-    auto graph = gen->GenerateCallgraphInDirection(false, true);
-
-    view->ShowGraphReport("Calls to and from " + view->GetAnalysisEntryPoint()->GetSymbol()->GetFullName(), graph);
+    view->ShowGraphReport("Calls from " + view->GetAnalysisEntryPoint()->GetSymbol()->GetFullName(), graph);
 }
 
 
 void displayFullCallgraph(BinaryView* view)
 {
-    auto gen = new CallgraphGenerator(view, view->GetAnalysisEntryPoint());
-
-    auto graph = gen->GenerateCallgraphInDirection(true, true, true);
+    auto graph = CallgraphGenerator::GetInstance(view)->GenerateCallgraphInDirection(view->GetAnalysisFunctionList().at(0), true, true, true);
 
     view->ShowGraphReport(view->GetFile()->GetFilename() + " Callgraph", graph);
 }
