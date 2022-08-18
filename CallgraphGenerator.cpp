@@ -115,8 +115,11 @@ Ref<FlowGraph> CallgraphGenerator::GenerateCallgraphInDirection(Ref<Function> fu
                         {
                             if (std::count(upwardValidNodes.begin(), upwardValidNodes.end(), incoming) == 0)
                             {
-                                upwardValidNodes.push_back(incoming);
-                                added += 1;
+                                if (incoming)
+                                {
+                                    upwardValidNodes.push_back(incoming);
+                                    added += 1;
+                                }
                             }
                         }
                     }
@@ -141,8 +144,11 @@ Ref<FlowGraph> CallgraphGenerator::GenerateCallgraphInDirection(Ref<Function> fu
                     {
                         if (std::count(downwardValidNodes.begin(), downwardValidNodes.end(), incoming) == 0)
                         {
-                            downwardValidNodes.push_back(incoming);
-                            added += 1;
+                            if (incoming)
+                            {
+                                downwardValidNodes.push_back(incoming);
+                                added += 1;
+                            }
                         }
                     }
                 }
