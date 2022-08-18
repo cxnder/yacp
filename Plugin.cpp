@@ -62,7 +62,8 @@ extern "C" {
     BINARYNINJAPLUGIN bool CorePluginInit()
     {
         // Dont do this.
-        PluginCommand::Register("Callgraph\\\x01 From Entry Point", "Generate a callgraph", displayCallGraphFromEntry);
+        PluginCommand::Register("Callgraph\\\x01 From Entry Point", "Generate a callgraph", displayCallGraphFromEntry,
+                                [](BinaryView* view){return view->GetAnalysisEntryPoint().GetPtr();});
         // Null entry where isValid always == false, so we can have extra spacing :D
         PluginCommand::Register(           "Callgraph\\\x02————————————————", "\x01", nullptr, [](BinaryView* view){return false;});
 

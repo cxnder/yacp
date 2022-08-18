@@ -43,20 +43,30 @@ Ref<FlowGraph> CallgraphGenerator::GenerateCallgraphInDirection(bool up, bool do
     {
         validNodes.push_back(baseNode);
 
+        vector<CallGraphNode*> upwardValidNodes;
+        vector<CallGraphNode*> downwardValidNodes;
+
         int added = 0;
         if (up) {
-            for (auto incoming: baseNode->incomingEdges) {
-                validNodes.push_back(incoming);
+            for (auto incoming: baseNode->incomingEdges)
+            {
+                upwardValidNodes.push_back(incoming);
                 added += 1;
             }
-
-            while (added) {
+            while (added)
+            {
                 added = 0;
-                for (auto node: validNodes) {
-                    for (auto incoming: node->incomingEdges) {
-                        if (std::count(validNodes.begin(), validNodes.end(), incoming) == 0) {
-                            validNodes.push_back(incoming);
-                            added += 1;
+                for (auto node: upwardValidNodes)
+                {
+                    if (node)
+                    {
+                        for (auto incoming : node->incomingEdges)
+                        {
+                            if (std::count(upwardValidNodes.begin(), upwardValidNodes.end(), incoming) == 0)
+                            {
+                                upwardValidNodes.push_back(incoming);
+                                added += 1;
+                            }
                         }
                     }
                 }
@@ -64,23 +74,36 @@ Ref<FlowGraph> CallgraphGenerator::GenerateCallgraphInDirection(bool up, bool do
         }
 
         added = 0;
-        if (down) {
-            for (auto incoming: baseNode->outgoingEdges) {
-                validNodes.push_back(incoming);
+        if (down)
+        {
+            for (auto incoming: baseNode->outgoingEdges)
+            {
+                downwardValidNodes.push_back(incoming);
                 added += 1;
             }
-            while (added) {
+            while (added)
+            {
                 added = 0;
-                for (auto node: validNodes) {
-                    for (auto incoming: node->outgoingEdges) {
-                        if (std::count(validNodes.begin(), validNodes.end(), incoming) == 0) {
-                            validNodes.push_back(incoming);
+                for (auto node: downwardValidNodes)
+                {
+                    for (auto incoming: node->outgoingEdges)
+                    {
+                        if (std::count(downwardValidNodes.begin(), downwardValidNodes.end(), incoming) == 0)
+                        {
+                            downwardValidNodes.push_back(incoming);
                             added += 1;
                         }
                     }
                 }
             }
         }
+
+        if (!upwardValidNodes.empty())
+            validNodes.insert( validNodes.end(), upwardValidNodes.begin(), upwardValidNodes.end() );
+        if (!downwardValidNodes.empty())
+            validNodes.insert( validNodes.end(), downwardValidNodes.begin(), downwardValidNodes.end() );
+
+
     }
     else
     {
