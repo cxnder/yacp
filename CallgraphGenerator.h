@@ -77,6 +77,8 @@ public:
 
     Ref<FlowGraph> GenerateCallgraph(CallGraphSettings settings);
 
+
+
     ProgressTask* CurrentTask() { return tasks.count(this) > 0 ? tasks[this] : nullptr; };
 
     void TrySetTaskTextAndProgress(std::string text, size_t done, size_t jobs);

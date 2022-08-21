@@ -6,6 +6,7 @@
 #include "CallgraphGenerator.h"
 #include "binja/ui/progresstask.h"
 #include "binja/ui/uicontext.h"
+#include "binja/ui/globalarea.h"
 
 using namespace std;
 using namespace BinaryNinja;
@@ -68,7 +69,7 @@ void showCallGraph(BinaryView* view, Function* func, const string& title, CallGr
         }
     }
 
-
+    UIContext::activeContext()->globalArea()->focusWidget("Log");
     BackgroundThread::create()
             ->thenBackground([=](QVariant) {
                 FlowGraph *graph = callgraph->GenerateCallgraph(settings);
