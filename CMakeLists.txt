@@ -9,8 +9,14 @@ add_subdirectory(binja)
 set(PLUGIN_SOURCE
         Plugin.cpp CallgraphGenerator.cpp CallgraphGenerator.h)
 
+find_package(Qt6 COMPONENTS Core Gui Widgets REQUIRED)
+
+find_package(QT NAMES Qt6 COMPONENTS Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
+
+
 add_library(yacp SHARED ${PLUGIN_SOURCE})
-target_link_libraries(yacp binaryninjaapi)
+target_link_libraries(yacp binaryninjaapi binaryninjaui Qt6::Core Qt6::Gui Qt6::Widgets)
 target_compile_features(yacp PRIVATE cxx_std_17 c_std_99)
 target_compile_definitions(yacp PRIVATE
         DEV_MODE=${DEV_MODE})
