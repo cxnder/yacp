@@ -61,3 +61,11 @@ The same applies in reverse to upwards callgraphs, and a popup will appear for b
 generate it with.
 
 Simply leave the dialog box empty and hit enter to not set any cap for how many levels deep to go.
+
+
+
+
+
+###### creds
+
+concurrency brought to you by: https://github.com/bshoshany/thread-pool
