@@ -4,6 +4,9 @@ project(yacp)
 
 add_subdirectory(binja)
 
+set(CMAKE_REQUIRED_LINK_OPTIONS "-arch arm64;-arch x86_64")
+set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE INTERNAL "" FORCE)
+
 # Binary Ninja plugin ----------------------------------------------------------
 
 set(PLUGIN_SOURCE

@@ -93,12 +93,9 @@ extern "C" {
     BN_DECLARE_CORE_ABI_VERSION
     BN_DECLARE_UI_ABI_VERSION
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "performance-for-range-copy"
     BINARYNINJAPLUGIN bool UIPluginInit()
-    {
-        return true;
-    }
-
-    BINARYNINJAPLUGIN bool CorePluginInit()
     {
         // Dont do this.
 
@@ -182,7 +179,7 @@ extern "C" {
                                                       settings);
                                     });
         }
-
         return true;
     }
+#pragma clang diagnostic pop
 }
